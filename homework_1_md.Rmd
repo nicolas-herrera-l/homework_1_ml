@@ -1,0 +1,212 @@
+---
+title: "Homework 1: Nicolas Herrera"
+output: html_document
+date: "2022-09-30"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1 (based on the introduction of ESL, pg 9):
+
+- **Supervised learning:** Refers to the types of tasks where the presence of the outcome variable guide the learning process.The task is to use the inputs/features to predict to predict the outcome variable. 
+
+- **Unsupervised learning:** Refers to the types of task were we only observe the inputs or features but we don't observe the outcomes. This type of task is rather to describe how data are organized or clustered. 
+
+- **What are the difference(s) between them?:** The main difference is that while we observe the outcome using supervised learning, we don't when using unsupervised learning. Additionally, the methods used in both cases are different as supervised learning's aim is to predict the outcome whereas unsupervised learning's aim is to look at data clusters.
+
+## Question 2 (based on the chapter 2 of ESL, pg 10):
+
+- **Regression model:** Prediction task where we predict quantitative outputs 
+
+- **Classification model:** Prediction task where we predict qualitative outputs.
+
+## Question 3 (based on the chapter 2 of ISLR, pg 30-37):
+
+- **Metrics to evaluate the performance of a regression model:** Mean Squared Error and Mean Absolute Error.
+
+-  **Metrics to evaluate the performance of a classification model:** Error rate and K-nearest neighbors.
+
+## Question 4 (based on the Lecture): 
+
+- **Descriptive models:** Aim to describe patterns in the data. To visually emphasize a trend in the data fitting a linear regression in a scatterplot is an example of descriptive model.
+
+- **Inferential models:** Aim to test relationships between outcomes and predictors (Hypothesis testing). They are used to test theories and sometimes causal claims about predictors and the outcome. 
+
+- **Predictive models:** Aim to predict the outcome variable with minimum reducible error.   
+
+## Question 5 
+(based on ISLR, pg 22-35): 
+
+- **Mechanistic:** Also Parametric methods. They assume a parametric form for *f* which is the function mapping the features to the outcome. It reduces the problem of estimating f down to one of estimating a set of
+parameters.
+
+- **Empirically-driven:**  Also non-parametric methods. They do not make explicit assumptions about the functional form of f. Instead they seek an estimate of *f* that gets as close to the data points as possible without being too rough or wiggly. 
+
+- **How do these model types differ? How are they similar?:** The main difference relies on one assuming the shape of f while the other doesn't. One similarity between both models is overfitting. Both models can fit the data perfectly causing that models follow the random noise to closely and wont produce necessarily a good estimate with new observations.
+
+- **In general, is a mechanistic or empirically-driven model easier to understand?:** As mechanistic models estimate a set of parameters, they can be easier to interpret than with a empirically-driven model. 
+
+
+- **How the bias-variance tradeoff is related to the use of mechanistic or empirically-driven models:**
+
+  * Variance refers to the amount by which $\hat{f}$ would change if we estimated it using a different training data set. However, if a method has high variance then small changes in the training data can result in large changes in  $\hat{f}$. In general, more flexible statistical methods have higher variance, therefore, an empirically-driven model is more likely to have larger  variance compared to a mechanistic. 
+
+  * Bias refers to the error that is introduced by approximating a real-life problem, which may be extremely complicated, by a much simpler model. In general, more flexible methods result in less bias. Therefore, an empirically-driven model is more likely to have smaller bias compared to a mechanistic 
+
+## Question 6
+
+A political candidate’s campaign has collected some detailed voter history data from their constituents. The campaign is interested in two questions:
+
+- **Given a voter’s profile/data, how likely is it that they will vote in favor of the candidate?** This question is predictive. Based on voters' characteristics and whether or not they want to vote for a candidate, the campaign can create a model to predict for new voters, how likely they are to vote for the same candidate. 
+
+- **How would a voter’s likelihood of support for the candidate change if they had personal contact with the candidate?** This question is inferential. The campaign is interested on testing whether personal contact with the candidate changes the likelihood of support for the candidate. This is the same as testing the significance of a binary variable with a value 1 if the votes had personal contact with the candidate and 0 otherwise. 
+
+# Exploratory Data Analysis
+
+```{r libraries , echo=T , message=F, warning=F}
+# Loading libraries
+library(tidyverse)
+library(ggplot2)
+library(corrplot)
+library(ggthemes)
+# Take a glance to the dataset
+view(mpg)
+```
+
+## Exercise 1
+The highway miles per gallon (mpg) of the cars in the database range between 12 and 44 mpg. Half of the distribution performs under 24 mpg and just around 1% of the sample perform over 40 mpg. 
+
+
+```{r Exercise 1}
+# Creating a histogram of the highway miles per gallon
+ggplot(mpg, aes(hwy)) + 
+  geom_histogram(bins=15 , color = "cadetblue4", fill = "cadetblue") +
+  labs(
+    title = "Distribution of highway miles per gallon",
+    x = "Miles per gallon",
+    y = "Frequency"
+  ) +
+   theme_minimal() 
+```
+
+
+## Exercise 2
+There is a positive relation between the highway miles per gallon (mpg) city miles per gallon (cty) for the cars in the database, the relationship seems to be linear. In highways cars tend to be more efficient than in cities.
+
+```{r Exercise 2}
+# Creating a scatter plot of the relationship between highway miles per gallon and number of cylinders
+ggplot(mpg, aes(x = hwy , y = cty)) + 
+  geom_point(size = 2, color = "cadetblue") + 
+labs(
+    title = "Relationship between highway and city miles per gallon",
+    x = "Highway",
+    y = "City"
+  ) +
+  geom_smooth(method='lm', formula= y~x , se=FALSE , color ="indianred4", size=0.5) +
+   theme_minimal() 
+```
+
+
+## Exercise 3
+We can observe that Dodge is the largest seller whereas Lincoln sells the smallest amount of cars.
+
+```{r Exercise 3}
+# Creating a small database with the counts of different manufacturers, 
+manufacturer <- mpg %>% 
+  group_by(manufacturer) %>% 
+  count(manufacturer) %>%
+  arrange(desc(n)) # Order from the largest to smallest producer of cars
+
+# Include Bar Plot
+ggplot(manufacturer, aes(x = reorder(manufacturer, n) , n)) +
+  geom_col(fill = "cadetblue") +
+  coord_flip() +
+  labs(
+    title = "Manufacturers' sells",
+    y = "Number of cars sold",
+    x = "Manufacturer"
+  ) +
+   theme_minimal() 
+```
+
+## Exercise 4
+We can observe that the more number of cylinders has a car, the less highway miles per gallon perform on average. Additionally we see that the distribution of mpg also shifts to the left , meaning that , the relationship between mpg and cylinders is not about outliers. Finally, we can see that there is more variance in mpg as the number of cylinders is reduced.
+
+```{r Exercise 4}
+# Including the number of characters as string to group the bar plot
+mpg <- mpg %>% 
+  mutate(cyl_str = as.character(cyl))
+
+# Include Box Plot
+ggplot(mpg, aes(hwy, cyl_str)) + 
+  geom_boxplot() +
+  labs(
+    title = "Distribution of highway miles per gallon by number of cylinders",
+    y = "Number of cylinders",
+    x = "Highway miles per gallon"
+  ) + 
+  geom_boxplot(fill = "cadetblue", colour = "black")+
+   theme_minimal() 
+
+# Check the spread of the distribution
+var_mpg <- mpg %>% 
+  group_by(cyl) %>%
+  summarize(var(hwy , na.rm=T))
+
+```
+## Exercise 5
+As we saw before miles per gallon in cities and highways are positively correlated. Also, they share the same relation with manual cars. The year seems to have a negative but small relationship with miles per gallon in cities and highways meaning that more recent cars seem less efficient, which for me is surprising. There is a positive relation between the number of cylinders and the engine displacement which is not surprising. However, the engine displacement and the number of cylinders are negatively correlated with miles per gallon in cities and highways which is also surprising. 
+
+```{r Exercise 5}
+
+# Include information for transmition type
+mpg <- mpg %>% 
+  mutate(manual = ifelse(trans == "manual(m5)" |
+                   trans == "manual(m6)", 1, 0))
+
+# Select a subset of numerical variables  
+mpg_sub <- mpg %>% 
+   select(manual,displ, year, cyl , cty , hwy)
+
+# Produce the correlation matrix
+M = cor(mpg_sub)
+corrplot(M, method = 'shade', order = 'hclust' , type = 'lower', diag = FALSE) # colorful number
+
+```
+
+## Exercise 6
+
+```{r Exercise 6}
+
+# Include Box Plot
+ggplot(mpg, aes(hwy, class)) + 
+  geom_boxplot() +
+  labs(
+    y = "Vehicle Class",
+    x = "Highway MPG"
+  )   + theme_gdocs()  +
+  geom_jitter( shape = 21 , color = "gray40", fill ="gray80" , height = 0.5 ,  alpha =0.6 , width = 0.01)
+```
+
+## Exercise 7
+
+```{r Exercise 7}
+
+# Include Box Plot
+ggplot(mpg, aes(class , hwy , fill=drv)) + 
+  geom_boxplot() 
+```
+
+
+## Exercise 8
+
+```{r Exercise 8}
+
+# Include Scatter Plot
+
+ggplot(mpg, aes(x=displ, y=hwy, color=drv)) +  geom_point(shape=16) + 
+  geom_smooth(aes(y = hwy, x = displ, linetype = drv) , method=loess , se=FALSE , color="dodgerblue2")
+
+```
